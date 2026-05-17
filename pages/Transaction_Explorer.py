@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import joblib
+
 
 
 st.set_page_config(
@@ -9,6 +9,7 @@ st.set_page_config(
 )
 
 st.title("Transaction Explorer")
+
 
 
 @st.cache_data
@@ -22,6 +23,7 @@ def load_data():
 df = load_data()
 
 
+
 df['TransactionID'] = (
     df['TransactionID']
     .astype(float)
@@ -30,13 +32,6 @@ df['TransactionID'] = (
 )
 
 
-@st.cache_resource
-def load_model():
-
-    return joblib.load("xg_model")
-
-model = load_model()
-
 
 st.sidebar.header("Filters")
 
@@ -44,6 +39,7 @@ fraud_filter = st.sidebar.selectbox(
     "Fraud Type",
     ["All", "Fraud", "Not Fraud"]
 )
+
 
 
 filtered_df = df
@@ -61,11 +57,13 @@ elif fraud_filter == "Not Fraud":
     ]
 
 
+
 st.subheader("Search Transaction")
 
 transaction_id = st.text_input(
     "Enter TransactionID"
 )
+
 
 
 if st.button("Search"):
@@ -80,7 +78,6 @@ if st.button("Search"):
             df['TransactionID']
             == transaction_id
         ]
-
 
         if len(row) > 0:
 
@@ -98,37 +95,12 @@ if st.button("Search"):
             )
 
 
-            try:
-
-                drop_cols = [
-                    c for c in ['isFraud', 'TransactionID']
-                    if c in row.columns
-                ]
-
-                X = row.drop(columns=drop_cols)
-
-                risk_score = (
-                    model.predict_proba(X)
-                    [:,1][0]
-                )
-
-                st.metric(
-                    "Fraud Risk Score",
-                    round(risk_score, 4)
-                )
-
-            except Exception as e:
-
-                st.warning(
-                    f"Prediction could not be generated: {e}"
-                )
-
-
         else:
 
             st.error(
                 "TransactionID not found"
             )
+
 
 
 st.subheader("Transactions Table")
